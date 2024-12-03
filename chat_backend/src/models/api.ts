@@ -13,4 +13,4 @@ export type APIChat = DBChat
 export type APIDBMessage = DBMessage
 export type APICreateUser = DBCreateUser
 export type APICreateChat = DBCreateChat
-export type APICreateMessage = DBMessage
+export type APICreateMessage = DBCreateMessage
