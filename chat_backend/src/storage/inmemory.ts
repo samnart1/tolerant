@@ -40,7 +40,7 @@ export class SimpleInMemoryResource<T extends S & DBEntity, S>
         for (const key in data) {
           if (data[key] != x[key]) return false
         }
-        return false
+        return true
       }) || null
     )
   }
