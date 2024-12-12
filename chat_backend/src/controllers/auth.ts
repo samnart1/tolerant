@@ -22,6 +22,7 @@ export function createAuthApp(
 ) {
   authApp.post(REGISTER_ROUTE, async (c) => {
     const { email, password, name } = await c.req.json()
+
     if (await userResource.find({ email })) {
       return c.json({ error: ERROR_USER_ALREADY_EXIST }, 400)
     }
@@ -31,11 +32,13 @@ export function createAuthApp(
     })
 
     await userResource.create({ name, email, password: hashedPassword })
+
     return c.json({ success: true })
   })
 
   authApp.post(LOGIN_ROUTE, async (c) => {
     const { email, password } = await c.req.json()
+
     const fulluser = await userResource.find({ email })
 
     if (
@@ -46,6 +49,7 @@ export function createAuthApp(
     }
 
     const { JWT_SECRET } = env<{ JWT_SECRET: string }, typeof c>(c)
+    
     const token = await sign({ ...fulluser, password: undefined }, JWT_SECRET)
     return c.json({ token })
   })
