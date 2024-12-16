@@ -1,10 +1,9 @@
-// one
 export type Email = `${string}@${string}.${string}`
 
 export interface DBEntity {
-  id: string
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface DBUser extends DBEntity {
@@ -26,6 +25,6 @@ export interface DBMessage extends DBEntity {
   message: string
 }
 
-export type DBCreateUser = Pick<DBUser, 'email' | 'password' | 'name'>
+export type DBCreateUser = Pick<DBUser, 'name' | 'email' | 'password'>
 export type DBCreateChat = Pick<DBChat, 'ownerId' | 'name'>
 export type DBCreateMessage = Pick<DBMessage, 'chatId' | 'type' | 'message'>

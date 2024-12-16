@@ -1,16 +1,17 @@
-// two
-import type {
-  DBChat,
+import {
   DBUser,
+  DBChat,
   DBMessage,
-  DBCreateChat,
   DBCreateUser,
+  DBCreateChat,
   DBCreateMessage,
 } from './db'
 
-export type APIUser = Omit<DBUser, 'Password'>
-export type APIChat = DBChat
-export type APIDBMessage = DBMessage
+export type APIUser = Omit<DBUser, 'password'>
 export type APICreateUser = DBCreateUser
+
+export type APIChat = DBChat
 export type APICreateChat = DBCreateChat
+
+export type APIMessage = DBMessage
 export type APICreateMessage = DBCreateMessage
