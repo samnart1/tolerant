@@ -1,3 +1,4 @@
+// controllers/auth.ts
 import { Hono } from 'hono'
 import { env } from 'hono/adapter'
 import { sign } from 'hono/jwt'
@@ -7,14 +8,13 @@ import type { IDatabaseResource } from '../storage/types'
 
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import { password } from 'bun'
 
-export const AUTH_PREFIX = '/auth/'
+export const AUTH_PREFIX = '/auth'
 
 export const authApp = new Hono<ContextVariables>()
 
-export const LOGIN_ROUTE = 'login/'
-export const REGISTER_ROUTE = 'register/'
+export const LOGIN_ROUTE = '/login/'
+export const REGISTER_ROUTE = '/register/'
 export const ERROR_USER_ALREADY_EXIST = 'USER_ALREADY_EXIST'
 export const ERROR_INVALID_CREDENTIALS = 'INVALID_CREDENTIALS'
 
@@ -62,6 +62,7 @@ const registerSchema = z.object({
   password: z.string().min(1),
   name: z.string().min(1),
 })
+
 const loginSchema = z.object({
   email: z
     .string()
