@@ -26,7 +26,7 @@ describe('auth tests', () => {
   })
 
   test('POST /register - user already exists', async () => {
-    await app.request('/api/v1/auth/register', {
+    await app.request('/api/v1/auth/register/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -36,7 +36,7 @@ describe('auth tests', () => {
       }),
     })
 
-    const response = await app.request('/api/v1/auth/register', {
+    const response = await app.request('/api/v1/auth/register/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -63,7 +63,7 @@ describe('auth tests', () => {
       }),
     })
 
-    const loginResponse = await app.request('/api/v1/auth/login', {
+    const loginResponse = await app.request('/api/v1/auth/login/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -85,7 +85,7 @@ describe('auth tests', () => {
   })
 
   test('POST /login - non-existing user', async () => {
-    const response = await app.request('/api/v1/auth/login', {
+    const response = await app.request('/api/v1/auth/login/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
