@@ -1,176 +1,177 @@
-import { beforeEach, describe, expect, test } from 'bun:test'
-import { createInMemoryApp } from '../src/controllers/main'
+import { beforeEach, describe, expect, test } from "bun:test";
+import { createInMemoryApp } from "../src/controllers/main";
 
-describe('auth tests', () => {
-  let app = createInMemoryApp()
-  beforeEach(async () => {
-    app = createInMemoryApp()
-  })
+describe("auth tests", () => {
+    let app = createInMemoryApp();
 
-  test('POST /register - normal case', async () => {
-    const jsonBody = {
-      email: 'test@example.com',
-      password: 'password123',
-      name: 'Test User',
-    }
+    beforeEach(async () => {
+        app = createInMemoryApp();
+    });
 
-    const response = await app.request('/api/v1/auth/register/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(jsonBody),
-    })
+    test("POST /register - normal case", async () => {
+        const jsonBody = {
+            email: "test@example.com",
+            password: "password123",
+            name: "Test User",
+        };
 
-    expect(response.status).toBe(200)
-  })
+        const response = await app.request("/api/v1/auth/register/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(jsonBody),
+        });
 
-  test('POST /register - user already exists', async () => {
-    await app.request('/api/v1/auth/register/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'existing@example.com',
-        password: 'password123',
-        name: 'Existing User',
-      }),
-    })
+        expect(response.status).toBe(200);
+    });
 
-    const response = await app.request('/api/v1/auth/register/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'existing@example.com',
-        password: 'password123',
-        name: 'Existing User',
-      }),
-    })
+    test("POST /register - user already exists", async () => {
+        await app.request("/api/v1/auth/register/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: "existing@example.com",
+                password: "password123",
+                name: "Existing User",
+            }),
+        });
 
-    expect(response.status).toBe(400)
-  })
+        const response = await app.request("/api/v1/auth/register/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: "existing@example.com",
+                password: "password123",
+                name: "Existing User",
+            }),
+        });
 
-  test('POST /login - success', async () => {
-    const res1 = await app.request('/api/v1/chat/', { method: 'GET' })
-    expect(res1.status).toBe(401)
+        expect(response.status).toBe(400);
+    });
 
-    await app.request('/api/v1/auth/register/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'loginuser@example.com',
-        password: 'password123',
-        name: 'Login User',
-      }),
-    })
+    test("POST /login - success", async () => {
+        const res1 = await app.request("/api/v1/chat/", { method: "GET" });
+        expect(res1.status).toBe(401);
 
-    const loginResponse = await app.request('/api/v1/auth/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'loginuser@example.com',
-        password: 'password123',
-        name: 'Login User',
-      }),
-    })
+        await app.request("/api/v1/auth/register/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: "loginuser@example.com",
+                password: "password123",
+                name: "Login User",
+            }),
+        });
 
-    expect(loginResponse.status).toBe(200)
-    const token = (await loginResponse.json())['token']
-    expect(token).toBeTruthy()
+        const loginResponse = await app.request("/api/v1/auth/login/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: "loginuser@example.com",
+                password: "password123",
+                name: "Login User",
+            }),
+        });
 
-    const res2 = await app.request('/api/v1/chat/', {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    expect(res2.status).toBe(200)
-  })
+        expect(loginResponse.status).toBe(200);
+        const token = (await loginResponse.json())["token"];
+        expect(token).toBeTruthy();
 
-  test('POST /login - non-existing user', async () => {
-    const response = await app.request('/api/v1/auth/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'nonexisting@example.com',
-        password: 'password123',
-      }),
-    })
-    expect(response.status).toBe(401)
-  })
+        const res2 = await app.request("/api/v1/chat/", {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        expect(res2.status).toBe(200);
+    });
 
-  // Validation Tests
+    test("POST /login - non-existing user", async () => {
+        const response = await app.request("/api/v1/auth/login/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: "nonexisting@example.com",
+                password: "password123",
+            }),
+        });
+        expect(response.status).toBe(401);
+    });
 
-  test('POST /register - incorrect body', async () => {
-    const jsonBody = {
-      email: 'example',
-    }
+    // Validation Tests
 
-    const response = await app.request('/api/v1/auth/register/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(jsonBody),
-    })
-    expect(response.status).toBe(400)
+    test("POST /register - incorrect body", async () => {
+        const jsonBody = {
+            email: "example",
+        };
 
-    expect(await response.json()).toEqual({
-      success: false,
-      error: {
-        issues: [
-          {
-            validation: 'email',
-            code: 'invalid_string',
-            message: 'Invalid email',
-            path: ['email'],
-          },
-          {
-            code: 'invalid_type',
-            expected: 'string',
-            received: 'undefined',
-            path: ['password'],
-            message: 'Required',
-          },
-          {
-            code: 'invalid_type',
-            expected: 'string',
-            received: 'undefined',
-            path: ['name'],
-            message: 'Required',
-          },
-        ],
-        name: 'ZodError',
-      },
-    })
-  })
+        const response = await app.request("/api/v1/auth/register/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(jsonBody),
+        });
+        expect(response.status).toBe(400);
 
-  test('POST /login - incorrect body', async () => {
-    const response = await app.request('/api/v1/auth/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'wrong',
-        // password: '',
-      }),
-    })
-    expect(response.status).toBe(400)
+        expect(await response.json()).toEqual({
+            success: false,
+            error: {
+                issues: [
+                    {
+                        validation: "email",
+                        code: "invalid_string",
+                        message: "Invalid email",
+                        path: ["email"],
+                    },
+                    {
+                        code: "invalid_type",
+                        expected: "string",
+                        received: "undefined",
+                        path: ["password"],
+                        message: "Required",
+                    },
+                    {
+                        code: "invalid_type",
+                        expected: "string",
+                        received: "undefined",
+                        path: ["name"],
+                        message: "Required",
+                    },
+                ],
+                name: "ZodError",
+            },
+        });
+    });
 
-    expect(await response.json()).toEqual({
-      success: false,
-      error: {
-        issues: [
-          {
-            validation: 'email',
-            code: 'invalid_string',
-            message: 'Invalid email',
-            path: ['email'],
-          },
-          {
-            code: 'invalid_type',
-            expected: 'string',
-            received: 'undefined',
-            path: ['password'],
-            message: 'Required',
-          },
-        ],
-        name: 'ZodError',
-      },
-    })
-  })
-})
+    test("POST /login - incorrect body", async () => {
+        const response = await app.request("/api/v1/auth/login/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: "wrong",
+                // password: '',
+            }),
+        });
+        expect(response.status).toBe(400);
+
+        expect(await response.json()).toEqual({
+            success: false,
+            error: {
+                issues: [
+                    {
+                        validation: "email",
+                        code: "invalid_string",
+                        message: "Invalid email",
+                        path: ["email"],
+                    },
+                    {
+                        code: "invalid_type",
+                        expected: "string",
+                        received: "undefined",
+                        path: ["password"],
+                        message: "Required",
+                    },
+                ],
+                name: "ZodError",
+            },
+        });
+    });
+});
