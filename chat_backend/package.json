@@ -5,7 +5,8 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "hono": "^4.6.12"
+    "hono": "^4.6.12",
+    "pino": "^9.6.0"
   },
   "devDependencies": {
     "@hono/zod-validator": "^0.4.1",
