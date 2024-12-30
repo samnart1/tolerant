@@ -53,5 +53,12 @@ describe("chat tests", () => {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
+    expect(response.status).toBe(200);
+    const responseData = await response.json();
+    const data = responseData.data;
+    expect(Array.isArray(data)).toBeTruthy();
+    expect(data.length).toBe(1);
+    expect(data[0].id).toBe(chatId);
   });
+  test("GET /cht/ - get user chats wehn mulp")
 });
