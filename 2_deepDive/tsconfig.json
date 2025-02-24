@@ -1,8 +1,0 @@
-{
-  "compilerOptions": {
-    "module": "es2022",
-    "target": "es2017",
-    "strictNullChecks": true
-  },
-  "includes": ["main.ts"]
-}
