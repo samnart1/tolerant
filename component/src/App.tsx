@@ -1,43 +1,45 @@
-import { useState } from "react";
-import "./App.css";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Home from "./Home";
+import About from "./About";
+import Contact from "./Contact";
+import "./input.css";
+import Team from "./Team";
+import NotFound from "./NotFound";
+import CurrentLocation from "./CurrentLocation";
+import Dashboard from "./Dashboard";
 
-function App() {
-
-  const [count, setCount] = useState(0);
-  const [step, setStep] = useState(1);
-
-  const incrementCount = () => {
-    step ? setCount(count + 1 * step) : setCount(count + 1);
-  }
-
-  const decrementCount = () => {
-    step ? setCount(count - 1 * step) : setCount(count - 1);
-  }
-
-  // const incrementStep = () => {
-  //   setStep(step + 1);
-  // }
-
-  // const decrementStep = () => {
-  //   setStep(step - 1);
-  // }
-
-
+const App = () => {
   return (
-    <div className="app-container">
-      <h1>Counter Value: {count}</h1>
-      <input 
-        type="number"
-        onChange={(e) => setStep(parseInt(e.target.value))}
-        />
-      <h1>Step: {step}</h1>
-      <button onClick={incrementCount}>Increment</button>
-      <button onClick={decrementCount}>Decrement</button>
-      <button onClick={() => setCount(0)}>Reset</button>
-      {/* <button onClick={incrementStep}>Increment Step</button>
-      <button onClick={decrementStep}>Decrement Step</button> */}
-    </div>
+    <Router>
+      <div className="min-h-screen bg-gray-100">
+        <nav className="bg-blue-600 p-4">
+          <ul>
+            <li>
+              <Link to={"/"}>Home</Link>
+            </li>
+            <li>
+              <Link to={"/about"}>About</Link>
+            </li>
+            <li>
+              <Link to={"/contact"}>Contact</Link>
+            </li>
+          </ul>
+        </nav>
+
+        <CurrentLocation />
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />}>
+            <Route path="team" element={<Team />} />
+          </Route>
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </Router>
   );
-} 
+};
 
 export default App;
