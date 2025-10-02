@@ -1,0 +1,22 @@
+{"properties": [
+  {
+    "name": "inventory.service.url",
+    "type": "java.lang.String",
+    "description": "A description for 'inventory.service.url'"
+  },
+  {
+    "name": "rabbitmq.exchange.payment",
+    "type": "java.lang.String",
+    "description": "A description for 'rabbitmq.exchange.payment'"
+  },
+  {
+    "name": "rabbitmq.routing-key.payment",
+    "type": "java.lang.String",
+    "description": "A description for 'rabbitmq.routing-key.payment'"
+  },
+  {
+    "name": "rabbitmq.queue.payment",
+    "type": "java.lang.String",
+    "description": "A description for 'rabbitmq.queue.payment'"
+  }
+]}
