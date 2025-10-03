@@ -74,6 +74,16 @@ func main() {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		
+		log.Fatalf("server force d to shutdown: %v", err)
 	}
+
+	log.Println("server exited")
+
+}
+
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
