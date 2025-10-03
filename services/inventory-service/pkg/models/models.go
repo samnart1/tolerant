@@ -1,4 +1,4 @@
-package pkg
+package models
 
 type InventoryResponse struct {
 	ProductID			string	`json:"productId"`
