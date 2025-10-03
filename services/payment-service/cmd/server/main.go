@@ -52,7 +52,7 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("STarting payment service http server on port %s", &port)
+		log.Printf("STarting payment service http server on port %s", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("failed to start http server: %v", err)
 		}
