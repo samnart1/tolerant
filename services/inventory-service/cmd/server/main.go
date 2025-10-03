@@ -41,7 +41,7 @@ func main() {
 		{
 			inventory.GET("/check", inventoryHandler.CheckInventory)
 			inventory.POST("/reserve", inventoryHandler.ReserveInventory)
-			inventory.POST("/reserve", inventoryHandler.ReleaseInventory)
+			inventory.POST("/release", inventoryHandler.ReleaseInventory)
 			inventory.GET("/status/:productId", inventoryHandler.GetInventoryStatus)
 		}
 	}
