@@ -1,26 +1,94 @@
-# Microservice Resilience Thesis Project
-## Analyzing the Performance Consequences of Fault-Tolerance Patterns in Microservices
-This repository contains the complete implementation for the thesis project analyzing resilience patterns in microservice architectures.
-## Project Strucuture
-- `services/` - Microservice implementations
-	- `order-service/` - Java/Spring Boot order management service
-	- `inventory-service/` - Go-based inventory service
-	- `payment-service/` - Payment processing service with RabbitMQ
-- `infrastructure/` - Kubernetes, Istio and infrastructure configurations
-- `monitoring/` - Prometheus, Grafana, Jaeger configurations
-- `experiments/` - Experiment scenarios, workloads and results
-- `scripts/` - Automation scripts for deloyment and testing
-- `docs/` - Architecture documentation and runbooks
+# Analyzing the Performance Consequences of Fault-Tolerance Patterns in Microservices
 
-## Quick Start
+## 🎓 Master's Thesis Implementation
 
-1. Prerequisites: Docker, Kubernetes (minikube/kind), kubectl, helm
-2. Run setup: `./scripts/setup/install-prerequisites.sh`
-3. Deply infrastructure: `./scripts/deploy/deploy-infrastructure.sh`
-4. Deploy services: `./scripts/deploy/deploy-services.sh`
-5. Run experiments: `./scripts/test/run-experiment.sh`
+A comprehensive experimental framework for evaluating fault-tolerance patterns in microservice architectures, examining the trade-offs between resilience and performance across different communication protocols.
 
-##
-## Architecture
+## 🏗️ Architecture
 
-See `docs/architecture/` for architecture diagrams and design.
+```
+┌─────────────┐      REST/gRPC      ┌──────────────┐
+│   Order     │ ──────────────────> │  Inventory   │
+│  Service    │                     │   Service    │
+│ (Spring)    │                     │     (Go)     │
+└─────────────┘                     └──────────────┘
+      │
+      │ RabbitMQ (Async)
+      ▼
+┌─────────────┐
+│  Payment    │
+│  Service    │
+│    (Go)     │
+└─────────────┘
+```
+
+## 🔧 Tech Stack
+
+- **Languages**: Java (Spring Boot), Go, C++
+- **Orchestration**: Kubernetes + Istio
+- **Messaging**: RabbitMQ
+- **Monitoring**: Prometheus, Grafana, Jaeger
+- **Chaos**: Chaos Mesh, Toxiproxy
+- **Load Testing**: wrk, k6
+
+## 🚀 Quick Start
+
+```bash
+# 1. Setup infrastructure
+make setup-infra
+
+# 2. Deploy services
+make deploy-all
+
+# 3. Run baseline experiment
+make experiment-baseline
+
+# 4. View dashboards
+make dashboard
+```
+
+## 📊 Experiments
+
+1. **Circuit Breaker Comparison**: App-level vs Service Mesh
+2. **Retry Strategy Impact**: Exponential backoff vs Fixed
+3. **Bulkhead Patterns**: Thread pool vs Semaphore
+4. **Protocol Performance**: REST vs gRPC under failures
+5. **Async Resilience**: Message queue failure modes
+
+## 📁 Project Structure
+
+```
+.
+├── services/              # Microservice implementations
+│   ├── order-service/    # Java/Spring Boot
+│   ├── inventory-service/# Go
+│   ├── payment-service/  # Go
+│   └── analytics-service/# C++ (optional)
+├── infrastructure/        # K8s, Istio, monitoring
+├── scripts/              # Automation scripts
+├── workload/             # Load generators
+└── results/              # Experimental data
+```
+
+## 📖 Documentation
+
+- [Architecture Guide](docs/architecture/README.md)
+- [API Documentation](docs/api/README.md)
+- [Experiment Protocols](docs/experiments/README.md)
+
+## 🎯 Key Features
+
+- ✅ Multi-language implementation
+- ✅ Application & infrastructure-level resilience
+- ✅ Automated fault injection
+- ✅ Comprehensive metrics collection
+- ✅ Reproducible experiments
+- ✅ Real-time monitoring dashboards
+
+## 📄 License
+
+MIT License - See LICENSE file
+
+## 👨‍🎓 Author
+
+[Your Name] - Master's Thesis, [University Name], 2025
