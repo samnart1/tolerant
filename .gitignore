@@ -1,0 +1,50 @@
+# Build artifacts
+*.class
+*.jar
+*.war
+target/
+build/
+bin/
+dist/
+
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# C++
+*.o
+*.so
+*.a
+cmake-build-*/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
+secrets/
+.env
+
+# Results
+results/raw/
+*.csv
+*.log
+
+# Docker
+.dockerignore
+
+# Infra
+istio.tar.gz
+istio-1.27.1

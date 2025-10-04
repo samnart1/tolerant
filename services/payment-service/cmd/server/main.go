@@ -19,7 +19,7 @@ import (
 func main() {
 	metrics.Init()
 	paymentProcessor := processor.NewPaymentProcessor()
-	rabbitMQURL := getEnv("RABBITMQ_URL", "amqp://admin:admin@localhost:5672/")
+	rabbitMQURL := getEnv("RABBITMQ_URL", "amqp://admin:admin@rabbitmq:5672/")
 	paymentConsumer, err := consumer.NewPaymentConsumer(rabbitMQURL, paymentProcessor)
 	if err != nil {
 		log.Fatalf("failed to create payment consumer,: %v", err)

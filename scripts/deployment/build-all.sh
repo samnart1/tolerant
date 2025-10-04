@@ -22,7 +22,7 @@ build_order_service() {
     ./mvnw clean package -DskipTests
     
     # Build Docker image
-    docker build -t order-service:latest .
+    sudo docker build -t order-service:latest .
     
     # Load into kind
     kind load docker-image order-service:latest --name thesis-cluster
@@ -36,7 +36,7 @@ build_inventory_service() {
     cd "$PROJECT_ROOT/services/inventory-service"
     
     # Build Docker image
-    docker build -t inventory-service:latest .
+    sudo docker build -t inventory-service:latest .
     
     # Load into kind
     kind load docker-image inventory-service:latest --name thesis-cluster
@@ -50,7 +50,7 @@ build_payment_service() {
     cd "$PROJECT_ROOT/services/payment-service"
     
     # Build Docker image
-    docker build -t payment-service:latest .
+    sudo docker build -t payment-service:latest .
     
     # Load into kind
     kind load docker-image payment-service:latest --name thesis-cluster

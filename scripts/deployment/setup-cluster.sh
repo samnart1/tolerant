@@ -75,12 +75,13 @@ install_istio() {
     echo -e "${YELLOW}Installing Istio service mesh...${NC}"
     
     # Download Istio
-    if [ ! -d "$HOME/istio-1.20.0" ]; then
-        curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.20.0 sh -
-        sudo mv istio-1.20.0 $HOME/
+    if [ ! -d "$HOME/istio-1.19.3" ]; then
+        # curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.19.3 sh -
+        ISTIO_VERSION=1.19.3 curl -L https://istio.io/downloadIstio | sh -
+        sudo mv istio-1.19.3 $HOME/
     fi
     
-    export PATH=$HOME/istio-1.20.0/bin:$PATH
+    export PATH=$HOME/istio-1.19.3/bin:$PATH
     
     # Install Istio with demo profile
     istioctl install --set profile=demo -y
