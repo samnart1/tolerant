@@ -164,12 +164,25 @@ install_metallb() {
     echo -e "${YELLOW}Installing MetalLB...${NC}"
     
     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
-    
-    # Wait for MetalLB to be ready
+
+    echo "Waiting for MetalLB controller..."
     kubectl wait --namespace metallb-system \
-        --for=condition=ready pod \
-        --selector=app=metallb \
-        --timeout=90s
+        --for=condition=read pod \
+        --selector=app=metallb,component=controller \
+        --timeout=180s
+
+    echo "Waiting for MetalLB speaker pods..."
+    kubectl wait --namespace metallb-system \
+        --for-condition=read pod \
+        --selector=app=metallb,component=speaker \
+        --timeout=180s || {
+            echo -e "${YELLOW}Warning: some speaker pods may still be starting. continuing...${NC}"
+        }
+    
+    # kubectl wait --namespace metallb-system \
+    #     --for=condition=ready pod \
+    #     --selector=app=metallb \
+    #     --timeout=90s
     
     # Configure MetalLB IP address pool
     docker network inspect -f '{{.IPAM.Config}}' kind | grep -oP '\d+\.\d+\.\d+' | head -n1 > /tmp/kind_network
@@ -202,10 +215,10 @@ deploy_infrastructure() {
     cd "$PROJECT_ROOT"
     
     # Apply Istio configuration
-    kubectl apply -f infrastructure/istio/
+    # kubectl apply -f infrastructure/istio/
     
     # Apply monitoring configuration
-    kubectl apply -f infrastructure/monitoring/prometheus/
+    # kubectl apply -f infrastructure/monitoring/prometheus/
     
     # Deploy RabbitMQ
     kubectl apply -f infrastructure/kubernetes/base/rabbitmq.yaml
@@ -288,12 +301,12 @@ print_access_info() {
 main() {
     check_prerequisites
     create_cluster
-    install_istio
-    install_monitoring
-    install_chaos_mesh
-    install_metallb
+    # install_istio
+    # install_monitoring
+    # install_chaos_mesh
+    # install_metallb
     deploy_infrastructure
-    setup_grafana
+    # setup_grafana
     print_access_info
 }
 

@@ -44,6 +44,7 @@ add_executable(analytics-service ${SOURCES})
 # Include directories
 target_include_directories(analytics-service PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${httplib_SOURCE_DIR}
 )
 
 # Link libraries
@@ -52,6 +53,7 @@ target_link_libraries(analytics-service PRIVATE
     nlohmann_json::nlohmann_json
     prometheus-cpp::core
     prometheus-cpp::pull
+    # httplib::httplib
 )
 
 # Compiler options

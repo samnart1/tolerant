@@ -79,7 +79,7 @@ print_info() {
 main() {
     deploy_services
     wait_for_services
-    apply_istio_config
+    # apply_istio_config
     print_info
 }
 
