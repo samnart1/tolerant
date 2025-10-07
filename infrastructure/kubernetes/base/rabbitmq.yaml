@@ -63,11 +63,11 @@ spec:
                   key: password
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
+              memory: "1Gi"
               cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
           volumeMounts:
             - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq

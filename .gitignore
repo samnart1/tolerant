@@ -48,3 +48,6 @@ results/raw/
 # Infra
 istio.tar.gz
 istio-1.27.1
+
+#experiment
+results

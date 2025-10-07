@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +20,7 @@ import (
 func main() {
 	metrics.Init()
 	paymentProcessor := processor.NewPaymentProcessor()
-	rabbitMQURL := getEnv("RABBITMQ_URL", "amqp://admin:admin@rabbitmq:5672/")
+	rabbitMQURL := buildRabbitMQURL()
 	paymentConsumer, err := consumer.NewPaymentConsumer(rabbitMQURL, paymentProcessor)
 	if err != nil {
 		log.Fatalf("failed to create payment consumer,: %v", err)
@@ -83,4 +84,12 @@ func getEnv(key, defaultKey string) string {
 		return value
 	} 
 	return defaultKey
+}
+
+func buildRabbitMQURL() string {
+	user := getEnv("RABBITMQ_USER", "admin")
+	pass := getEnv("RABBITMQ_PASS", "admin")
+	host := getEnv("RABBITMQ_HOST", "rabbitmq")
+	port := getEnv("RABBITMQ_PORT", "5671")
+	return fmt.Sprintf("amqp://%s:%s@%s:%s/", user, pass, host, port)
 }

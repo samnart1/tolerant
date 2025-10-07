@@ -92,19 +92,19 @@ collect_metrics() {
     START_TIME=$((END_TIME - 1800))  # Last 30 minutes
     
     # Request rate
-    curl -s "http://localhost:9090/api/v1/query_range?query=rate(http_server_requests_seconds_count\[1m\])&start=${START_TIME}&end=${END_TIME}&step=15s" \
+    curl -s "http://localhost:9090/api/query_range?query=rate(http_server_requests_seconds_count\[1m\])&start=${START_TIME}&end=${END_TIME}&step=15s" \
         > "$RESULTS_DIR/metrics-request-rate.json"
     
     # Error rate
-    curl -s "http://localhost:9090/api/v1/query_range?query=rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
+    curl -s "http://localhost:9090/api/query_range?query=rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
         > "$RESULTS_DIR/metrics-error-rate.json"
     
     # Latency
-    curl -s "http://localhost:9090/api/v1/query_range?query=histogram_quantile(0.95,rate(http_server_requests_seconds_bucket\[1m\]))&start=${START_TIME}&end=${END_TIME}&step=15s" \
+    curl -s "http://localhost:9090/api/query_range?query=histogram_quantile(0.95,rate(http_server_requests_seconds_bucket\[1m\]))&start=${START_TIME}&end=${END_TIME}&step=15s" \
         > "$RESULTS_DIR/metrics-p95-latency.json"
     
     # Circuit breaker state
-    curl -s "http://localhost:9090/api/v1/query?query=resilience4j_circuitbreaker_state" \
+    curl -s "http://localhost:9090/api/query?query=resilience4j_circuitbreaker_state" \
         > "$RESULTS_DIR/metrics-circuit-breaker.json"
     
     kill $PROM_PID 2>/dev/null || true

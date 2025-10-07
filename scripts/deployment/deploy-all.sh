@@ -65,7 +65,7 @@ print_info() {
     echo ""
     echo "To access the Order Service:"
     echo "  kubectl port-forward svc/order-service 8080:8080"
-    echo "  curl -X POST http://localhost:8080/api/v1/orders \\"
+    echo "  curl -X POST http://localhost:8080/api/orders \\"
     echo "    -H 'Content-Type: application/json' \\"
     echo "    -d '{\"productId\":\"PROD-001\",\"quantity\":2,\"paymentMethod\":\"credit_card\"}'"
     echo ""
