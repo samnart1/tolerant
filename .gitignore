@@ -41,6 +41,7 @@ secrets/
 results/raw/
 *.csv
 *.log
+*.json
 
 # Docker
 .dockerignore
