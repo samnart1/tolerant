@@ -27,7 +27,7 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /api/v1/orders
+            prefix: /api/orders
       route:
         - destination:
             host: order-service

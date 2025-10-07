@@ -128,19 +128,19 @@ run_strategy_test() {
     START_TIME=$((END_TIME - 300))
     
     # Retry metrics
-    curl -s "http://localhost:9090/api/v1/query_range?query=rate(resilience4j_retry_calls_total[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
+    curl -s "http://localhost:9090/api/query_range?query=rate(resilience4j_retry_calls_total[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
         > "$output_dir/retry-calls.json"
     
     # Success with retry
-    curl -s "http://localhost:9090/api/v1/query_range?query=rate(resilience4j_retry_calls_total{kind=\"successful_with_retry\"}[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
+    curl -s "http://localhost:9090/api/query_range?query=rate(resilience4j_retry_calls_total{kind=\"successful_with_retry\"}[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
         > "$output_dir/retry-success.json"
     
     # Failed with retry
-    curl -s "http://localhost:9090/api/v1/query_range?query=rate(resilience4j_retry_calls_total{kind=\"failed_with_retry\"}[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
+    curl -s "http://localhost:9090/api/query_range?query=rate(resilience4j_retry_calls_total{kind=\"failed_with_retry\"}[1m])&start=${START_TIME}&end=${END_TIME}&step=15s" \
         > "$output_dir/retry-failed.json"
     
     # Response times
-    curl -s "http://localhost:9090/api/v1/query_range?query=histogram_quantile(0.95,rate(http_server_requests_seconds_bucket[1m]))&start=${START_TIME}&end=${END_TIME}&step=15s" \
+    curl -s "http://localhost:9090/api/query_range?query=histogram_quantile(0.95,rate(http_server_requests_seconds_bucket[1m]))&start=${START_TIME}&end=${END_TIME}&step=15s" \
         > "$output_dir/latency-p95.json"
     
     kill $PROM_PID 2>/dev/null || true

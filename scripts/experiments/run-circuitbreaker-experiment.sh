@@ -330,10 +330,10 @@ EOF
     PROM_PID=$!
     sleep 3
     
-    curl -s "http://localhost:9090/api/v1/query?query=resilience4j_circuitbreaker_state" \
+    curl -s "http://localhost:9090/api/query?query=resilience4j_circuitbreaker_state" \
         > "$RESULTS_DIR/app-level/circuit-breaker-state.json"
     
-    curl -s "http://localhost:9090/api/v1/query?query=resilience4j_circuitbreaker_calls_total" \
+    curl -s "http://localhost:9090/api/query?query=resilience4j_circuitbreaker_calls_total" \
         > "$RESULTS_DIR/app-level/circuit-breaker-calls.json"
     
     kill $PROM_PID 2>/dev/null || true

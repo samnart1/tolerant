@@ -130,5 +130,59 @@ private:
 int main() {
     // todo: implementa main.
 
+    std::cout << "starting Analytics Service..." << std::endl;
+
+    AnalyticsService analytics;
+
+    Exposer exposer{"0.0.0.0.8083"};
+    exposer.RegisterCollectable(analytics.getRegistry());
+
+    //http server for rest api
+    httplib::Server server;
+
+    //health
+    server.Get("/health", [](const httplib::Request&, httplib::Response &res)  {
+        res.set_content("{\"status\":\"UP\"}", "application/json");
+    });
+
+    //get analytics endpoint
+    server.Get("/api/analytics", [&analytics](const httplib::Request&, httplib::Response& res) {
+        json response = analytics.getAnalysis();
+        res.set_content(response.dump(), "application/json");
+    });
+
+    //get aggregated metrics endpoint
+    server.Get("/api/analytics/aggregated", [&analytics](const httplib::Request& req, httplib::Response& res) {
+        std::string time_window = req.has_param("window") ? req.get_param_value("window") : "1h";
+        json response = analytics.getAggregatedMetrics(time_window);
+        res.set_content(response.dump(), "application/json");
+    });
+
+    //process order event endpoint
+    server.Post("api/analytics/events/order", [&analytics](const httplib::Request& req, httplib::Response& res) {
+        try {
+            json order_data = json::parse(req.body);
+            analytics.processOrderEvent(order_data);
+            res.status = 202;
+            res.set_content("{\"status\":\"accepted\"}", "application/json");
+
+        } catch (const std::exception& e) {
+            res.status = 400;
+            json error = {{"error", e.what()}};
+            res.set_content(error.dump(), "application/json");
+        }
+    });
+
+    //metrics endpoint
+    server.Get("/metrics", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content("# prometheus metrics at :8083/metrics\n", "test/plain");
+    });
+
+    std::cout << "analytics service running on port 8084" << std::endl;
+    std::cout << "prometheus metrics on port 8083" << std::endl;
+    std::cout << "health check at http://localhost:8084/health" << std::endl;
+
+    server.listen("0.0.0.0", 8084);
+
     return 0;
 }

@@ -45,7 +45,7 @@ export default function () {
   };
 
   const startTime = new Date().getTime();
-  const response = http.post(`${BASE_URL}/api/v1/orders`, payload, params);
+  const response = http.post(`${BASE_URL}/api/orders`, payload, params);
   const duration = new Date().getTime() - startTime;
 
   // Record custom metrics
@@ -89,11 +89,15 @@ function textSummary(data, options) {
   output += `${indent}  Errors: ${(data.metrics.errors.values.rate * 100).toFixed(2)}%\n`;
   output += `${indent}\n`;
   output += `${indent}Response Times:\n`;
-  output += `${indent}  Min: ${data.metrics.http_req_duration.values.min.toFixed(2)}ms\n`;
-  output += `${indent}  Avg: ${data.metrics.http_req_duration.values.avg.toFixed(2)}ms\n`;
-  output += `${indent}  P95: ${data.metrics.http_req_duration.values['p(95)'].toFixed(2)}ms\n`;
-  output += `${indent}  P99: ${data.metrics.http_req_duration.values['p(99)'].toFixed(2)}ms\n`;
-  output += `${indent}  Max: ${data.metrics.http_req_duration.values.max.toFixed(2)}ms\n`;
+
+  const getValidMetric = (metric) => {
+    return metric !== undefined && metric !== null && !isNaN(metric) ? metric.toFixed(2) : 'N/A';
+  }
+  output += `${indent}  Min: ${getValidMetric(data.metrics.http_req_duration.values.min)}ms\n`;
+  output += `${indent}  Avg: ${getValidMetric(data.metrics.http_req_duration.values.avg)}ms\n`;
+  output += `${indent}  P95: ${getValidMetric(data.metrics.http_req_duration.values['p(95)'])}ms\n`;
+  output += `${indent}  P99: ${getValidMetric(data.metrics.http_req_duration.values['p(99)'])}ms\n`;
+  output += `${indent}  Max: ${getValidMetric(data.metrics.http_req_duration.values.max)}ms\n`;
   
   return output;
 }

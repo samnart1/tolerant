@@ -50,7 +50,7 @@ function request()
    local headers = {}
    headers["Content-Type"] = "application/json"
    
-   return wrk.format("POST", "/api/v1/orders", headers, body)
+   return wrk.format("POST", "/api/orders", headers, body)
 end
 
 function response(status, headers, body)
