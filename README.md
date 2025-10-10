@@ -2,5 +2,5 @@
 
 ## Master's Thesis Implementation
 
-A comprehensive experimental framework for evaluating fault-tolerance patterns in microservice architectures, examining the trade-offs between resilience and performance across different communication protocols and resilience patterns.
+A comprehensive experimental framework for evaluating fault-tolerance patterns in microservice architectures, examining the trade-offs between resilience and performance across different communication protocols and resilience strategies.
 
