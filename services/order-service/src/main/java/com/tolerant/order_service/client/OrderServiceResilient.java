@@ -18,6 +18,7 @@ import com.tolerant.order_service.model.OrderStatus;
 import com.tolerant.order_service.model.PaymentRequest;
 import com.tolerant.order_service.model.PaymentResponse;
 import com.tolerant.order_service.repos.OrderRepository;
+import com.tolerant.order_service.service.OrderService;
 
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -44,7 +45,7 @@ public class OrderServiceResilient implements OrderService {
     @Value("${messaging.enabled:false}")
     private boolean asyncMessagingEnabled;
 
-    // @Override
+    @Override
     @Transactional
     @CircuitBreaker(name = "orderService", fallbackMethod = "createOrderFallback")
     @Retry(name = "orderService")
@@ -225,20 +226,24 @@ public class OrderServiceResilient implements OrderService {
         return orderRepo.save(order);
     }
 
+    @Override
     public Order getOrder(Long id) {
         return orderRepo.findById(id) 
             .orElseThrow(() -> new OrderProcessingException("Order not found: " + id));
     }
 
+    @Override
     public Order getOrderByNumber(String orderNumber) {
         return orderRepo.findByOrderNumber(orderNumber)
             .orElseThrow(() -> new OrderProcessingException("Order not found: " + orderNumber));
     }
 
+    @Override
     public List<Order> getAllOrders() {
         return orderRepo.findAll();
     }
 
+    @Override
     public List<Order> getOrdersByCustomer(String customerId) {
         return orderRepo.findByCustomerId(customerId);
     }
