@@ -20,7 +20,7 @@ public class PaymentClient {
     private final WebClient.Builder webClientBuilder;
 
     public Mono<PaymentResponse> processPayment(PaymentRequest request, Duration timeout) {
-        log.info("Calling Payment service for order: {}", request.getOrderId);
+        log.info("Calling Payment service for order: {}", request.getOrderId());
 
         return webClientBuilder.build()
             .post()
@@ -29,11 +29,11 @@ public class PaymentClient {
             .retrieve()
             .bodyToMono(PaymentResponse.class)
             .timeout(timeout)
-            .doOnSuccess(response -> log.info("Payment", timeout);)
+            .doOnSuccess(response -> log.info("Payment", timeout));
     }
 
-    public PaymentResponse processPaymentSync(PaymentRequest paymentRequest, Duration timeout) {
-
+    public PaymentResponse processPaymentSync(PaymentRequest request, Duration timeout) {
+        return processPayment(request, timeout).block();
     }
 
 }
