@@ -1,5 +1,9 @@
 package com.tolerant.payment_service.model;
 
-public class PaymentStatus {
-    
+public enum PaymentStatus {
+    PENDING,
+    PROCESSING,
+    COMPLETED,
+    FAILED,
+    REFUNDED
 }
