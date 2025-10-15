@@ -17,5 +17,5 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Inventory> findByProductId(String productId);
 
-    boolean existByProductId(String productId);    
+    boolean existsByProductId(String productId);    
 }
