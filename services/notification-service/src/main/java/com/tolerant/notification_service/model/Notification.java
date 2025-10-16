@@ -1,5 +1,7 @@
 package com.tolerant.notification_service.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +11,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class notification {
+public class Notification {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,4 +40,26 @@ public class notification {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private NotificationStatus status;
+
+    @Column(nullable = false)
+    private String channel; // for http or rabbitmq communication
+
+    @Column(nullable = false)
+    private String failureReason;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime sentAt;
+
+    @Column(nullable = false)
+    private Long processingTimeMs;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        if (notificationId == null) {
+            notificationId = "NOTIF-" + System.currentTimeMillis();
+        }
+    }
 }
