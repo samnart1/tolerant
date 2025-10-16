@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tolerant.notification_service.exceptions.NotificationException;
 import com.tolerant.notification_service.model.*;
 import com.tolerant.notification_service.repo.NotificationRepository;
 
@@ -60,7 +61,7 @@ public class NotificationProcessingService implements NotificationService {
         return processNotification(request, "RABBITMQ", startTime);
     }
 
-    private NotificationResponse processNotification(NotificationRequest request, String channel, LocalDateTime startTime) {
+    private NotificationResponse processNotification(NotificationRequest request, String channel, long startTime) {
         Notification notification = Notification.builder()
             .orderId(request.getOrderId())
             .customerId(request.getCustomerId())
@@ -183,6 +184,12 @@ public class NotificationProcessingService implements NotificationService {
 
     public ChaosConfig getChaosConfig() {
         return new ChaosConfig(chaosEnabled, chaosFailureRate, chaosDelayMs);
+    }
+
+    public void updateChaosConfig(double failureRate, long delayMs) {
+        this.chaosFailureRate = Math.min(Math.max(failureRate, 0.0), 1.0);
+        this.chaosDelayMs = Math.min(delayMs, 0);
+        log.info("Chaos config updated. Failure Rate: {}%, Delay: {}ms", this.chaosFailureRate * 100, this.chaosDelayMs);
     }
     
 }
