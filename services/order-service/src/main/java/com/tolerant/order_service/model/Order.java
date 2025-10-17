@@ -63,7 +63,7 @@ public class Order {
 
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false)
+    // @Column(nullable = false)
     private Long processingTimeMs;
 
     @PrePersist

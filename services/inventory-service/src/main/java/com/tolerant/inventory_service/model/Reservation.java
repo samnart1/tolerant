@@ -39,10 +39,10 @@ public class Reservation {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    // @Column(nullable = false)
     private LocalDateTime completedAt;
 
-    @Column(nullable = false)
+    // @Column(nullable = false)
     private Long processingTimeMs;
 
     @PrePersist

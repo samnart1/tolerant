@@ -50,7 +50,7 @@ public class Payment {
 
     private LocalDateTime processedAt;
 
-    @Column(nullable = false)
+    // @Column(nullable = false)
     private Long processingTimeMs;
 
     @PrePersist

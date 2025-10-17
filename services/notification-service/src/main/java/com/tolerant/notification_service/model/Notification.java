@@ -47,12 +47,12 @@ public class Notification {
     @Column(nullable = false)
     private String failureReason;
 
-    @Column(nullable = false)
+    // @Column(nullable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime sentAt;
 
-    @Column(nullable = false)
+    // @Column(nullable = false)
     private Long processingTimeMs;
 
     @PrePersist
