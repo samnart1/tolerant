@@ -65,6 +65,16 @@ services:
       - CHAOS_FAILURE_RATE=${CHAOS_FAILURE_RATE:-0.0}
       - CHAOS_DELAY_MS=${CHAOS_DELAY_MS:-0}
       - JAVA_OPTS=-Xms512m -Xms256m
+    depends_on:
+      - eureka-server
+    networks:
+      - tolerant
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   inventory-service:
     build: ../services/inventory-service
@@ -99,7 +109,7 @@ services:
       - CHAOS_ENABLED=${CHAOS_ENABLED:-false}
       - CHAOS_FAILURE_RATE=${CHAOS_FAILURE_RATE:-0.0}
       - CHAOS_DELAY_MS=${CHAOS_DELAY_MS:-0}
-      - JAVA_OPTS=-Xmx512m Xms256m
+      - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
       - eureka-server
       - rabbitmq
