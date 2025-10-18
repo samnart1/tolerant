@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9-eclipse-temurin-17 AS eureka_build
 WORKDIR /app
 
 # Copy pom.xml and download dependencies (cached layer)
@@ -19,7 +19,7 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 # Copy jar from build stage
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=eureka_build /app/target/*.jar app.jar
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
