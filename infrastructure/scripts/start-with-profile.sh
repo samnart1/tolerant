@@ -12,26 +12,26 @@ echo "--------------------"
 echo "starting system with profile: $PROFILE"
 echo "--------------------"
 
-docker-compose down
+# docker compose down
 
-docker-compose build
+# docker compose build
 
-PROFILE=$PROFILE docker-compose up -d
+# PROFILE=$PROFILE docker compose up -d
 
-echo "waiting for services to start (60s)...."
-sleep 60
+# echo "waiting for services to start (60s)...."
+# sleep 60
 
 #checking health
 echo ""
 echo "------------------------------------"
 echo "Service Health Status:"
 echo "-----------------------------"
-echo -s http://localhost:8761/actuator/health | '.status'
-echo -s http://localhost:8080/actuator/health | '.status'
-echo -s http://localhost:8081/actuator/health | '.status'
-echo -s http://localhost:8082/actuator/health | '.status'
-echo -s http://localhost:8083/actuator/health | '.status'
-echo -s http://localhost:8084/actuator/health | '.status'
+curl -s http://localhost:8761/actuator/health | jq '.status'
+curl -s http://localhost:8080/actuator/health | jq '.status'
+curl -s http://localhost:8081/actuator/health | jq '.status'
+curl -s http://localhost:8082/actuator/health | jq '.status'
+curl -s http://localhost:8083/actuator/health | jq '.status'
+curl -s http://localhost:8084/actuator/health | jq '.status'
 
 echo ""
 echo "--------------------------------"

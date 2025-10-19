@@ -29,7 +29,7 @@ for PROFILE in "${PROFILES[@]}"; do
     wait
     
     # Stop system
-    docker-compose down
+    docker compose down
     
     echo "Profile $PROFILE complete!"
     sleep 10
