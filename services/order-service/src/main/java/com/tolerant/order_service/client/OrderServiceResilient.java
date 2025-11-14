@@ -201,7 +201,7 @@ public class OrderServiceResilient implements OrderService {
             .orderId(order.getOrderNumber())
             .customerId(request.getCustomerId())
             .email(request.getCustomerEmail())
-            .phone(request.getCustomerEmail())
+            .phone(request.getCustomerPhone())
             .message("Your order has been confirmed!")
             .notificationType("ORDER_CONFIRMATION")
             .build();

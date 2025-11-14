@@ -1,0 +1,95 @@
+# Circuit Breaker Profile
+# Tests the circuit breaker pattern's impact on cascading failures and system stability
+
+spring:
+  profiles:
+    active: circuit-breaker
+
+# Resilience Configuration - Circuit Breaker Pattern
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 5s
+        record-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.util.concurrent.TimeoutException
+          - com.tolerant.order_service.exception.OrderProcessingException
+    instances:
+      orderService:
+        base-config: default
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15s
+      payment:
+        base-config: default
+        failure-rate-threshold: 40
+        sliding-window-size: 15
+        wait-duration-in-open-state: 10s
+      inventory:
+        base-config: default
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      notification:
+        base-config: default
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 5s
+
+  # Basic retry for circuit breaker
+  retry:
+    configs:
+      default:
+        max-attempts: 2
+        wait-duration: 500ms
+    instances:
+      orderService:
+        max-attempts: 2
+      payment:
+        max-attempts: 2
+      inventory:
+        max-attempts: 2
+      notification:
+        max-attempts: 1
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+
+  # Disable bulkhead
+  bulkhead:
+    configs:
+      default:
+        enabled: false
+
+messaging:
+  enabled: false
+
+chaos:
+  enabled: false
+
+resilience:
+  timeout:
+    duration: 5s
+
+logging:
+  level:
+    '[com.tolerant.order_service]': DEBUG
+    '[io.github.resilience4j.circuitbreaker]': DEBUG
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always

@@ -1,0 +1,149 @@
+# Production-Combined Profile
+# Combines all resilience patterns for production-ready fault tolerance
+
+spring:
+  profiles:
+    active: production-combined
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          max-attempts: 3
+          multiplier: 2
+        default-requeue-rejected: false
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        max-attempts: 3
+
+# Resilience Configuration - All Patterns Combined
+resilience4j:
+  # Circuit Breaker
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 5s
+        record-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.util.concurrent.TimeoutException
+          - com.tolerant.order_service.exception.OrderProcessingException
+    instances:
+      orderService:
+        base-config: default
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15s
+      payment:
+        base-config: default
+        failure-rate-threshold: 40
+        sliding-window-size: 15
+        wait-duration-in-open-state: 10s
+      inventory:
+        base-config: default
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      notification:
+        base-config: default
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 5s
+
+  # Retry
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.util.concurrent.TimeoutException
+    instances:
+      orderService:
+        max-attempts: 2
+      payment:
+        max-attempts: 3
+        wait-duration: 1s
+      inventory:
+        max-attempts: 3
+        wait-duration: 500ms
+      notification:
+        max-attempts: 2
+        wait-duration: 300ms
+
+  # Bulkhead
+  bulkhead:
+    configs:
+      default:
+        max-concurrent-calls: 10
+        max-wait-duration: 0ms
+    instances:
+      orderService:
+        max-concurrent-calls: 25
+        max-wait-duration: 100ms
+      payment:
+        max-concurrent-calls: 15
+        max-wait-duration: 50ms
+      inventory:
+        max-concurrent-calls: 15
+        max-wait-duration: 50ms
+      notification:
+        max-concurrent-calls: 20
+        max-wait-duration: 0ms
+
+  # Time Limiter
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+        cancel-running-future: true
+    instances:
+      orderService:
+        timeout-duration: 10s
+      payment:
+        timeout-duration: 5s
+      inventory:
+        timeout-duration: 3s
+      notification:
+        timeout-duration: 2s
+
+# Enable async messaging for notifications
+messaging:
+  enabled: true
+
+chaos:
+  enabled: false
+
+resilience:
+  timeout:
+    duration: 5s
+
+logging:
+  level:
+    '[com.tolerant.order_service]': DEBUG
+    '[io.github.resilience4j]': DEBUG
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
