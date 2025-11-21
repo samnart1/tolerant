@@ -1,0 +1,82 @@
+# Async Queue Profile
+# Tests asynchronous messaging with RabbitMQ for non-critical operations (notifications)
+
+spring:
+  profiles:
+    active: async-queue
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          max-attempts: 3
+          multiplier: 2
+        default-requeue-rejected: false
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        max-attempts: 3
+
+# Resilience Configuration - Minimal for async pattern
+resilience4j:
+  # Basic timeout for sync calls (payment, inventory)
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+    instances:
+      payment:
+        timeout-duration: 5s
+      inventory:
+        timeout-duration: 3s
+      notification:
+        timeout-duration: 2s
+
+  # Basic retry for sync operations
+  retry:
+    configs:
+      default:
+        max-attempts: 2
+        wait-duration: 500ms
+    instances:
+      payment:
+        max-attempts: 3
+      inventory:
+        max-attempts: 3
+      notification:
+        max-attempts: 1
+
+  # Disable other patterns
+  circuitbreaker:
+    configs:
+      default:
+        enabled: false
+
+  bulkhead:
+    configs:
+      default:
+        enabled: false
+
+# Enable async messaging for notifications
+messaging:
+  enabled: true
+
+chaos:
+  enabled: false
+
+resilience:
+  timeout:
+    duration: 5s
+
+logging:
+  level:
+    '[com.tolerant.order_service]': DEBUG
+    '[org.springframework.amqp]': DEBUG

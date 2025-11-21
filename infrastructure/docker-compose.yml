@@ -9,7 +9,7 @@ services:
     networks:
       - tolerant
     healthcheck:
-      test: ["CMD", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -60,11 +60,12 @@ services:
     ports:
       - "8082:8082"
     environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-baseline}
       - EUREKA_URI=http://eureka-server:8761/eureka
       - CHAOS_ENABLED=${CHAOS_ENABLED:-false}
       - CHAOS_FAILURE_RATE=${CHAOS_FAILURE_RATE:-0.0}
       - CHAOS_DELAY_MS=${CHAOS_DELAY_MS:-0}
-      - JAVA_OPTS=-Xms512m -Xms256m
+      - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
       - eureka-server
     networks:
@@ -82,17 +83,18 @@ services:
     ports:
       - "8083:8083"
     environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-baseline}
       - EUREKA_URI=http://eureka-server:8761/eureka
       - CHAOS_ENABLED=${CHAOS_ENABLED:-false}
       - CHAOS_FAILURE_RATE=${CHAOS_FAILURE_RATE:-0.0}
       - CHAOS_DELAY_MS=${CHAOS_DELAY_MS:-0}
-      - JAVA_OPTS=-Xms512m -Xms256m
+      - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
       - eureka-server
     networks:
       - tolerant
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries-1", "--spider", "http://localhost:8083/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -104,6 +106,7 @@ services:
     ports:
       - "8084:8084"
     environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-baseline}
       - EUREKA_URI=http://eureka-server:8761/eureka
       - RABBITMQ_HOST=rabbitmq
       - CHAOS_ENABLED=${CHAOS_ENABLED:-false}
@@ -116,7 +119,7 @@ services:
     networks:
       - tolerant
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--spider", "http:localhost:8084/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -127,9 +130,10 @@ services:
     container_name: api-gateway
     ports:
       - "8080:8080"
-    environment: 
+    environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-baseline}
       - EUREKA_URI=http://eureka-server:8761/eureka
-      - JAVA_OPTS=-Xms256m -Xms512m
+      - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
       - eureka-server
       - order-service
@@ -139,7 +143,7 @@ services:
     networks:
       - tolerant
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "hhtp://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3

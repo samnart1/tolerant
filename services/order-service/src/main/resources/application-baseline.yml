@@ -1,0 +1,41 @@
+# Baseline Profile - No Resilience Patterns
+# This profile runs without any fault tolerance mechanisms for baseline performance measurement
+
+spring:
+  profiles:
+    active: baseline
+
+# Disable all resilience features
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        enabled: false
+  retry:
+    configs:
+      default:
+        enabled: false
+  bulkhead:
+    configs:
+      default:
+        enabled: false
+  timelimiter:
+    configs:
+      default:
+        enabled: false
+
+# Disable async messaging - use synchronous calls only
+messaging:
+  enabled: false
+
+# No chaos engineering
+chaos:
+  enabled: false
+
+resilience:
+  timeout:
+    duration: 30s  # Long timeout for baseline
+
+logging:
+  level:
+    '[com.tolerant.order_service]': INFO

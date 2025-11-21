@@ -1,0 +1,76 @@
+# Retry + Timeout Profile
+# Tests the impact of retry mechanisms and timeouts on performance and resilience
+
+spring:
+  profiles:
+    active: retry-timeout
+
+# Resilience Configuration - Retry + Timeout Only
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.util.concurrent.TimeoutException
+    instances:
+      orderService:
+        base-config: default
+        max-attempts: 2
+      payment:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 1s
+      inventory:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 500ms
+      notification:
+        base-config: default
+        max-attempts: 2
+        wait-duration: 300ms
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+        cancel-running-future: true
+    instances:
+      orderService:
+        timeout-duration: 10s
+      payment:
+        timeout-duration: 5s
+      inventory:
+        timeout-duration: 3s
+      notification:
+        timeout-duration: 2s
+
+  # Disable other patterns
+  circuitbreaker:
+    configs:
+      default:
+        enabled: false
+
+  bulkhead:
+    configs:
+      default:
+        enabled: false
+
+# Synchronous messaging
+messaging:
+  enabled: false
+
+chaos:
+  enabled: false
+
+resilience:
+  timeout:
+    duration: 5s
+
+logging:
+  level:
+    '[com.tolerant.order_service]': DEBUG
+    '[io.github.resilience4j]': DEBUG

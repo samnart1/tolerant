@@ -42,14 +42,13 @@ inventory:
 chaos:
     enabled: ${CHAOS_ENABLED:false}
     failure-rate: ${CHAOS_FAILURE_RATE:0.0}
-    delay-ms: ${CHAOSE_DELAY_MS:0}
+    delay-ms: ${CHAOS_DELAY_MS:0}
 
 logging:
   level:
     '[com.tolerant.inventory_service]': INFO
     '[org.springframework.web]': INFO
   pattern:
-    # console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 #actuator

@@ -40,4 +40,4 @@ for i in $(seq 1 $((DURATION/10))); do
 done
 
 echo "Metrics collection complete!"
-echo "Results saved to: $OUTPUT_DIRE"
+echo "Results saved to: $OUTPUT_DIR"
