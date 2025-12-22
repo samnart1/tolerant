@@ -1,0 +1,200 @@
+services:
+  # Redis for cart storage
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Backend services
+  currency:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/currency
+    command: python main.py
+    volumes:
+      - ./currency:/app/currency
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  productcatalog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/productcatalog
+    command: python main.py
+    volumes:
+      - ./productcatalog:/app/productcatalog
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  ad:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/ad
+    command: python main.py
+    volumes:
+      - ./ad:/app/ad
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8089:8089"
+
+  recommendation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/recommendation
+    command: python main.py
+    volumes:
+      - ./recommendation:/app/recommendation
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8088:8088"
+    environment:
+      - PRODUCT_CATALOG_URL=http://productcatalog:8081
+    depends_on:
+      - productcatalog
+
+  shipping:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/shipping
+    command: python main.py
+    volumes:
+      - ./shipping:/app/shipping
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8084:8084"
+
+  payment:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/payment
+    command: python main.py
+    volumes:
+      - ./payment:/app/payment
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8085:8085"
+
+  email:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/email
+    command: python main.py
+    volumes:
+      - ./email:/app/email
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8086:8086"
+
+  cart:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/cart
+    command: python main.py
+    volumes:
+      - ./cart:/app/cart
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8082:8082"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  checkout:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/checkout
+    command: python main.py
+    volumes:
+      - ./checkout:/app/checkout
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8087:8087"
+    environment:
+      - CART_URL=http://cart:8082
+      - PRODUCT_CATALOG_URL=http://productcatalog:8081
+      - CURRENCY_URL=http://currency:8083
+      - SHIPPING_URL=http://shipping:8084
+      - PAYMENT_URL=http://payment:8085
+      - EMAIL_URL=http://email:8086
+    depends_on:
+      - cart
+      - productcatalog
+      - currency
+      - shipping
+      - payment
+      - email
+
+  # Frontend - Locust hits this
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app/frontend
+    command: python main.py
+    volumes:
+      - ./frontend:/app/frontend
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8080:8080"
+    environment:
+      - PRODUCT_CATALOG_URL=http://productcatalog:8081
+      - CART_URL=http://cart:8082
+      - CURRENCY_URL=http://currency:8083
+      - SHIPPING_URL=http://shipping:8084
+      - CHECKOUT_URL=http://checkout:8087
+      - RECOMMENDATION_URL=http://recommendation:8088
+      - AD_URL=http://ad:8089
+    depends_on:
+      - productcatalog
+      - cart
+      - currency
+      - shipping
+      - checkout
+      - recommendation
+      - ad
+
+  # Load generator (Locust)
+  loadgenerator:
+    build: ./loadgenerator
+    ports:
+      - "8090:8089"
+    volumes:
+      - ./loadgenerator:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --host=http://frontend:8080
+    depends_on:
+      - frontend
+    profiles:
+      - loadtest
+
+networks:
+  default:
+    name: online-boutique

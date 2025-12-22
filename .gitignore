@@ -1,40 +1,15 @@
 # Build artifacts
-*.class
-*.jar
-*.war
-target/
-build/
-bin/
-dist/
+__pycache__/
 
-# Go
-*.exe
-*.test
-*.out
-vendor/
 
-# C++
-*.o
-*.so
-*.a
-cmake-build-*/
-build/
+
+
 
 # IDE
-.idea/
 .vscode/
-*.swp
-*.swo
-*~
 
-# OS
-.DS_Store
-Thumbs.db
 
 # Secrets
-*.pem
-*.key
-secrets/
 .env
 
 # Results
@@ -46,13 +21,5 @@ results/raw/
 # Docker
 .dockerignore
 
-# Infra
-istio.tar.gz
-istio-1.27.1
-
 #experiment
 results
-
-jmeter.log
-apache-jmeter-5.6.3.tgz
-apache-jmeter-5.6.3
