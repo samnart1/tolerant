@@ -13,7 +13,7 @@ myenv/
 .env
 
 # Results
-results/raw/
+
 *.csv
 *.log
 *.json
@@ -22,4 +22,4 @@ results/raw/
 .dockerignore
 
 #experiment
-results
+# results
