@@ -1,8 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uuid
+import os
+import random
+import time
 
 app = FastAPI(title="Payment Service")
+
+# Failure injection config
+FAILURE_RATE = float(os.getenv("FAILURE_RATE", "0"))  # 0-100
+LATENCY_MS = int(os.getenv("LATENCY_MS", "0"))  # Additional latency in ms
 
 class CreditCardInfo(BaseModel):
     credit_card_number: str
@@ -22,31 +29,41 @@ class ChargeRequest(BaseModel):
 class ChargeResponse(BaseModel):
     transaction_id: str
 
-def luhn_check(card_number: str) -> bool:
-    """Basic Luhn algorithm check for card validation"""
-    digits = [int(d) for d in card_number if d.isdigit()]
-    if len(digits) < 13:
-        return False
-    
-    checksum = 0
-    for i, digit in enumerate(reversed(digits)):
-        if i % 2 == 1:
-            digit *= 2
-            if digit > 9:
-                digit -= 9
-        checksum += digit
-    return checksum % 10 == 0
+def maybe_fail():
+    """Inject failure based on FAILURE_RATE"""
+    if FAILURE_RATE > 0 and random.random() * 100 < FAILURE_RATE:
+        raise HTTPException(status_code=500, detail="Simulated failure")
+
+def maybe_delay():
+    """Inject latency based on LATENCY_MS"""
+    if LATENCY_MS > 0:
+        time.sleep(LATENCY_MS / 1000.0)
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "failure_rate": FAILURE_RATE,
+        "latency_ms": LATENCY_MS
+    }
+
+@app.get("/config")
+def get_config():
+    """Get current failure injection config"""
+    return {
+        "failure_rate": FAILURE_RATE,
+        "latency_ms": LATENCY_MS
+    }
 
 @app.post("/charge", response_model=ChargeResponse)
 def charge(req: ChargeRequest):
+    # Inject failures/latency
+    maybe_delay()
+    maybe_fail()
+    
     # Basic validation
     card_num = req.credit_card.credit_card_number.replace(" ", "").replace("-", "")
     
-    # Skip strict validation for testing - accept most card formats
     if len(card_num) < 12:
         raise HTTPException(status_code=400, detail="Invalid card number")
     
@@ -62,4 +79,5 @@ def charge(req: ChargeRequest):
 
 if __name__ == "__main__":
     import uvicorn
+    print(f"Payment Service starting with FAILURE_RATE={FAILURE_RATE}%, LATENCY_MS={LATENCY_MS}")
     uvicorn.run(app, host="0.0.0.0", port=8085)

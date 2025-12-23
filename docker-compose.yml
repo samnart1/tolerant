@@ -1,3 +1,10 @@
+# Common service configuration
+x-service-common: &service-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+
 services:
   # Redis for cart storage
   redis:
@@ -12,9 +19,7 @@ services:
 
   # Backend services
   currency:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/currency
     command: python main.py
     volumes:
@@ -22,16 +27,12 @@ services:
       - ./requirements.txt:/app/requirements.txt
     ports:
       - "8083:8083"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    environment:
+      - FAILURE_RATE=${CURRENCY_FAILURE_RATE:-0}
+      - LATENCY_MS=${CURRENCY_LATENCY_MS:-0}
 
   productcatalog:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/productcatalog
     command: python main.py
     volumes:
@@ -39,16 +40,12 @@ services:
       - ./requirements.txt:/app/requirements.txt
     ports:
       - "8081:8081"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    environment:
+      - FAILURE_RATE=${PRODUCTCATALOG_FAILURE_RATE:-0}
+      - LATENCY_MS=${PRODUCTCATALOG_LATENCY_MS:-0}
 
   ad:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/ad
     command: python main.py
     volumes:
@@ -58,9 +55,7 @@ services:
       - "8089:8089"
 
   recommendation:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/recommendation
     command: python main.py
     volumes:
@@ -70,13 +65,13 @@ services:
       - "8088:8088"
     environment:
       - PRODUCT_CATALOG_URL=http://productcatalog:8081
+      - FAILURE_RATE=${RECOMMENDATION_FAILURE_RATE:-0}
+      - LATENCY_MS=${RECOMMENDATION_LATENCY_MS:-0}
     depends_on:
       - productcatalog
 
   shipping:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/shipping
     command: python main.py
     volumes:
@@ -84,11 +79,12 @@ services:
       - ./requirements.txt:/app/requirements.txt
     ports:
       - "8084:8084"
+    environment:
+      - FAILURE_RATE=${SHIPPING_FAILURE_RATE:-0}
+      - LATENCY_MS=${SHIPPING_LATENCY_MS:-0}
 
   payment:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/payment
     command: python main.py
     volumes:
@@ -96,11 +92,12 @@ services:
       - ./requirements.txt:/app/requirements.txt
     ports:
       - "8085:8085"
+    environment:
+      - FAILURE_RATE=${PAYMENT_FAILURE_RATE:-0}
+      - LATENCY_MS=${PAYMENT_LATENCY_MS:-0}
 
   email:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/email
     command: python main.py
     volumes:
@@ -110,9 +107,7 @@ services:
       - "8086:8086"
 
   cart:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/cart
     command: python main.py
     volumes:
@@ -123,14 +118,14 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - FAILURE_RATE=${CART_FAILURE_RATE:-0}
+      - LATENCY_MS=${CART_LATENCY_MS:-0}
     depends_on:
       redis:
         condition: service_healthy
 
   checkout:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/checkout
     command: python main.py
     volumes:
@@ -145,6 +140,8 @@ services:
       - SHIPPING_URL=http://shipping:8084
       - PAYMENT_URL=http://payment:8085
       - EMAIL_URL=http://email:8086
+      - FAILURE_RATE=${CHECKOUT_FAILURE_RATE:-0}
+      - LATENCY_MS=${CHECKOUT_LATENCY_MS:-0}
     depends_on:
       - cart
       - productcatalog
@@ -155,9 +152,7 @@ services:
 
   # Frontend - Locust hits this
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *service-common
     working_dir: /app/frontend
     command: python main.py
     volumes:
@@ -173,6 +168,10 @@ services:
       - CHECKOUT_URL=http://checkout:8087
       - RECOMMENDATION_URL=http://recommendation:8088
       - AD_URL=http://ad:8089
+      # Circuit breaker config - set via .env file or command line
+      - CIRCUIT_BREAKER_ENABLED=${CIRCUIT_BREAKER_ENABLED:-false}
+      - CB_FAIL_MAX=${CB_FAIL_MAX:-5}
+      - CB_RESET_TIMEOUT=${CB_RESET_TIMEOUT:-30}
     depends_on:
       - productcatalog
       - cart
@@ -185,7 +184,7 @@ services:
   # Load generator (Locust)
   loadgenerator:
     build: ./loadgenerator
-    ports:
+    ports: 
       - "8090:8089"
     volumes:
       - ./loadgenerator:/mnt/locust
@@ -193,7 +192,7 @@ services:
     depends_on:
       - frontend
     profiles:
-      - loadtest
+      - loadtext
 
 networks:
   default:
