@@ -33,7 +33,7 @@ docker run --rm \
     --network=online-boutique \
     -v "$(pwd)/loadgenerator:/mnt/locust" \
     -v "$(pwd)/$RESULTS_DIR:/mnt/results" \
-    locustio/locust:latest \
+    thesis-microservices-loadgenerator:latest \
     -f /mnt/locust/locustfile.py \
     --host=http://frontend:8080 \
     --headless \
