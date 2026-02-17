@@ -42,7 +42,6 @@ def health():
 
 @app.post("/quote", response_model=QuoteResponse)
 def get_quote(req: ShippingRequest):
-    # Simple calculation: $1 per item + $5 base
     total_items = sum(item.quantity for item in req.items)
     cost = 5.0 + (total_items * 1.0)
     
@@ -56,7 +55,6 @@ def get_quote(req: ShippingRequest):
 
 @app.post("/ship", response_model=ShipOrderResponse)
 def ship_order(req: ShipOrderRequest):
-    # Generate a mock tracking ID
     tracking_id = f"TR{uuid.uuid4().hex[:12].upper()}"
     return ShipOrderResponse(tracking_id=tracking_id)
 

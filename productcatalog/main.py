@@ -7,11 +7,11 @@ import time
 
 app = FastAPI(title="Product Catalog Service")
 
-# Failure injection config
+
 FAILURE_RATE = float(os.getenv("FAILURE_RATE", "0"))
 LATENCY_MS = int(os.getenv("LATENCY_MS", "0"))
 
-# Product data matching the IDs from locustfile
+
 PRODUCTS = {
     "0PUK6V6EV0": {
         "id": "0PUK6V6EV0",

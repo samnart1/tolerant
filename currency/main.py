@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Currency Service")
 
-# Exchange rates relative to USD
+
 RATES = {
     "USD": 1.0,
     "EUR": 0.92,
@@ -40,7 +40,7 @@ def convert(req: ConversionRequest):
     from_rate = RATES.get(req.from_money.currency_code, 1.0)
     to_rate = RATES.get(req.to_code, 1.0)
     
-    # Convert to USD first, then to target
+    
     total_cents = req.from_money.units * 100 + req.from_money.nanos // 10_000_000
     usd_cents = total_cents / from_rate
     target_cents = usd_cents * to_rate

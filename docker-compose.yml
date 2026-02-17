@@ -1,4 +1,3 @@
-# Common service configuration
 x-service-common: &service-common
   build:
     context: .
@@ -6,7 +5,6 @@ x-service-common: &service-common
   restart: unless-stopped
 
 services:
-  # Redis for cart storage
   redis:
     image: redis:7-alpine
     ports:
@@ -17,7 +15,7 @@ services:
       timeout: 3s
       retries: 5
 
-  # Backend services
+
   currency:
     <<: *service-common
     working_dir: /app/currency
@@ -150,7 +148,7 @@ services:
       - payment
       - email
 
-  # Frontend - Locust hits this
+  # frontend ocust hits here
   frontend:
     <<: *service-common
     working_dir: /app/frontend
@@ -168,7 +166,6 @@ services:
       - CHECKOUT_URL=http://checkout:8087
       - RECOMMENDATION_URL=http://recommendation:8088
       - AD_URL=http://ad:8089
-      # Circuit breaker config - set via .env file or command line
       - CIRCUIT_BREAKER_ENABLED=${CIRCUIT_BREAKER_ENABLED:-false}
       - CB_FAIL_MAX=${CB_FAIL_MAX:-5}
       - CB_RESET_TIMEOUT=${CB_RESET_TIMEOUT:-30}
@@ -181,7 +178,6 @@ services:
       - recommendation
       - ad
 
-  # Load generator (Locust)
   loadgenerator:
     build: ./loadgenerator
     ports: 

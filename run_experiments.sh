@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Master experiment runner for thesis benchmarks
+
 # Usage: ./run_experiments.sh [duration_minutes] [users] [spawn_rate]
 
 DURATION=${1:-30}
@@ -97,13 +97,13 @@ echo ""
 # 1. Baseline (no CB, no failures)
 run_experiment "1_baseline" "./env/baseline.env"
 
-# 2. Baseline + Failures (no CB, with failures) - shows the problem
+# 2. Baseline + Failures (no CB, with failures) 
 run_experiment "2_baseline_failures" "./env/baseline_failures.env"
 
-# 3. Circuit Breaker (with CB, no failures) - measures overhead
+# 3. Circuit Breaker (with CB, no failures) 
 run_experiment "3_circuit_breaker" "./env/circuit_breaker.env"
 
-# 4. Circuit Breaker + Failures (with CB, with failures) - shows solution
+# 4. Circuit Breaker + Failures (with CB, with failures) 
 run_experiment "4_circuit_breaker_failures" "./env/circuit_breaker_failures.env"
 
 echo ""
