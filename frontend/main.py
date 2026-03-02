@@ -5,7 +5,6 @@ import uuid
 import os
 import time
 import logging
-from functools import wraps
 
 app = FastAPI(title="Frontend Service")
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +31,7 @@ class CircuitBreaker:
     OPEN = "open"
     HALF_OPEN = "half_open"
     
-    def __init__(self, name: str, fail_max: int = 5, reset_timeout: int = 30):
+    def __init__(self, name, fail_max = 5, reset_timeout = 30):
         self.name = name
         self.fail_max = fail_max
         self.reset_timeout = reset_timeout
@@ -41,14 +40,13 @@ class CircuitBreaker:
         self.last_failure_time = None
         self.success_count = 0
         
-        
         self.state_changes = []
         self.total_calls = 0
         self.total_failures = 0
         self.total_successes = 0
         self.total_rejected = 0
     
-    def _change_state(self, new_state: str):
+    def _change_state(self, new_state):
         if self.state != new_state:
             old_state = self.state
             self.state = new_state
@@ -62,15 +60,13 @@ class CircuitBreaker:
             self.state_changes.append(event)
             logger.info(f"[CB:{self.name}] State change: {old_state} -> {new_state}")
     
-    def can_execute(self) -> bool:
-        """check if request can proceed"""
+    def can_execute(self):
         self.total_calls += 1
         
         if self.state == self.CLOSED:
             return True
         
         if self.state == self.OPEN:
-            # Check if reset timeout has passed
             if time.time() - self.last_failure_time >= self.reset_timeout:
                 self._change_state(self.HALF_OPEN)
                 return True
@@ -83,7 +79,6 @@ class CircuitBreaker:
         return False
     
     def record_success(self):
-        """ecord successful call"""
         self.total_successes += 1
         
         if self.state == self.HALF_OPEN:
@@ -96,7 +91,6 @@ class CircuitBreaker:
             self.failure_count = 0
     
     def record_failure(self):
-        """record failed call"""
         self.total_failures += 1
         self.failure_count += 1
         self.last_failure_time = time.time()
@@ -106,7 +100,7 @@ class CircuitBreaker:
         elif self.state == self.CLOSED and self.failure_count >= self.fail_max:
             self._change_state(self.OPEN)
     
-    def get_metrics(self) -> dict:
+    def get_metrics(self):
         return {
             "name": self.name,
             "state": self.state,
@@ -120,9 +114,7 @@ class CircuitBreaker:
 
 
 class CircuitBreakerOpen(Exception):
-    """exception raised when circuit breaker is open"""
     pass
-
 
 
 breakers = {
@@ -135,13 +127,10 @@ breakers = {
     "ad": CircuitBreaker("ad", CB_FAIL_MAX, CB_RESET_TIMEOUT),
 }
 
-
-async def call_service(breaker_name: str, method: str, url: str, **kwargs):
-    """Make HTTP call with optional circuit breaker protection"""
+async def call_service(breaker_name, method, url, **kwargs):
     
     breaker = breakers.get(breaker_name)
     timeout = kwargs.pop("timeout", 5.0)
-    
     
     if not CIRCUIT_BREAKER_ENABLED:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -149,7 +138,6 @@ async def call_service(breaker_name: str, method: str, url: str, **kwargs):
                 return await client.get(url, **kwargs)
             else:
                 return await client.post(url, **kwargs)
-    
     
     if not breaker.can_execute():
         raise CircuitBreakerOpen(f"Circuit breaker {breaker_name} is OPEN")
@@ -161,7 +149,6 @@ async def call_service(breaker_name: str, method: str, url: str, **kwargs):
             else:
                 resp = await client.post(url, **kwargs)
             
-            # Consider 5xx as failure
             if resp.status_code >= 500:
                 breaker.record_failure()
             else:
@@ -171,8 +158,6 @@ async def call_service(breaker_name: str, method: str, url: str, **kwargs):
     except Exception as e:
         breaker.record_failure()
         raise
-
-
 
 
 sessions = {}
@@ -189,7 +174,6 @@ def get_currency(request: Request) -> str:
 
 
 
-
 async def get_products():
     try:
         resp = await call_service("productcatalog", "GET", f"{PRODUCT_CATALOG_URL}/products")
@@ -201,7 +185,7 @@ async def get_products():
         logger.error(f"ProductCatalog error: {e}")
         return []
 
-async def get_product(product_id: str):
+async def get_product(product_id):
     try:
         resp = await call_service("productcatalog", "GET", f"{PRODUCT_CATALOG_URL}/product/{product_id}")
         return resp.json() if resp.status_code == 200 else None
@@ -211,7 +195,7 @@ async def get_product(product_id: str):
     except Exception:
         return None
 
-async def get_cart(user_id: str):
+async def get_cart(user_id):
     try:
         resp = await call_service("cart", "POST", f"{CART_URL}/cart/get", json={"user_id": user_id})
         return resp.json() if resp.status_code == 200 else {"items": []}
@@ -221,7 +205,7 @@ async def get_cart(user_id: str):
     except Exception:
         return {"items": []}
 
-async def add_to_cart(user_id: str, product_id: str, quantity: int):
+async def add_to_cart(user_id, product_id, quantity):
     try:
         resp = await call_service("cart", "POST", f"{CART_URL}/cart/add", json={
             "user_id": user_id,
@@ -234,7 +218,7 @@ async def add_to_cart(user_id: str, product_id: str, quantity: int):
     except Exception:
         return False
 
-async def empty_cart_service(user_id: str):
+async def empty_cart_service(user_id):
     try:
         resp = await call_service("cart", "POST", f"{CART_URL}/cart/empty", json={"user_id": user_id})
         return resp.status_code == 200
@@ -243,17 +227,17 @@ async def empty_cart_service(user_id: str):
     except Exception:
         return False
 
-async def get_recommendations(product_ids: list):
+async def get_recommendations(product_ids):
     try:
         resp = await call_service("recommendation", "POST", f"{RECOMMENDATION_URL}/recommend", 
-                                  json={"product_ids": product_ids})
+                                json={"product_ids": product_ids})
         return resp.json().get("product_ids", []) if resp.status_code == 200 else []
     except CircuitBreakerOpen:
         return []
     except Exception:
         return []
 
-async def get_ads(context_keys: list = []):
+async def get_ads(context_keys):
     try:
         resp = await call_service("ad", "POST", f"{AD_URL}/ads", json={"context_keys": context_keys})
         return resp.json().get("ads", []) if resp.status_code == 200 else []
@@ -262,7 +246,7 @@ async def get_ads(context_keys: list = []):
     except Exception:
         return []
 
-async def get_shipping_quote(items: list):
+async def get_shipping_quote(items):
     try:
         resp = await call_service("shipping", "POST", f"{SHIPPING_URL}/quote", json={
             "address": {"street_address": "", "city": "", "state": "", "country": "", "zip_code": ""},
@@ -272,24 +256,25 @@ async def get_shipping_quote(items: list):
     except CircuitBreakerOpen:
         return {"currency_code": "USD", "units": 0, "nanos": 0}
     except Exception:
-        return {}
+        return {"currency_code": "USD", "units": 0, "nanos": 0}
 
-async def do_checkout_service(session_id: str, currency: str, address: dict, email: str, credit_card: dict):
+async def do_checkout_service(session_id, currency, address, email, credit_card):
     try:
         resp = await call_service("checkout", "POST", f"{CHECKOUT_URL}/checkout", 
-                                  timeout=30.0,
-                                  json={
-                                      "user_id": session_id,
-                                      "user_currency": currency,
-                                      "address": address,
-                                      "email": email,
-                                      "credit_card": credit_card
-                                  })
+                                timeout=30.0,
+                                json={
+                                    "user_id": session_id,
+                                    "user_currency": currency,
+                                    "address": address,
+                                    "email": email,
+                                    "credit_card": credit_card
+                                })
         return resp
     except CircuitBreakerOpen as e:
         raise e
     except Exception as e:
         raise e
+
 
 
 @app.get("/health")
