@@ -44,7 +44,7 @@ def health():
 
 @app.post("/ads", response_model=AdResponse)
 def get_ads(req: AdRequest):
-    # Return 1-2 random ads
+    
     num_ads = random.randint(1, 2)
     selected = random.sample(ADS, min(num_ads, len(ADS)))
     return AdResponse(ads=selected)

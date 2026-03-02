@@ -7,9 +7,9 @@ import time
 
 app = FastAPI(title="Payment Service")
 
-# Failure injection config
+
 FAILURE_RATE = float(os.getenv("FAILURE_RATE", "0"))  # 0-100
-LATENCY_MS = int(os.getenv("LATENCY_MS", "0"))  # Additional latency in ms
+LATENCY_MS = int(os.getenv("LATENCY_MS", "0"))  # additional latency in ms
 
 class CreditCardInfo(BaseModel):
     credit_card_number: str
@@ -57,11 +57,10 @@ def get_config():
 
 @app.post("/charge", response_model=ChargeResponse)
 def charge(req: ChargeRequest):
-    # Inject failures/latency
     maybe_delay()
     maybe_fail()
     
-    # Basic validation
+    
     card_num = req.credit_card.credit_card_number.replace(" ", "").replace("-", "")
     
     if len(card_num) < 12:
@@ -73,7 +72,7 @@ def charge(req: ChargeRequest):
     if req.amount.units <= 0 and req.amount.nanos <= 0:
         raise HTTPException(status_code=400, detail="Invalid amount")
     
-    # Mock successful charge
+    
     transaction_id = str(uuid.uuid4())
     return ChargeResponse(transaction_id=transaction_id)
 

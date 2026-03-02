@@ -7,7 +7,7 @@ import os
 
 app = FastAPI(title="Checkout Service")
 
-# Service URLs
+
 CART_URL = os.getenv("CART_URL", "http://cart:8082")
 PRODUCT_CATALOG_URL = os.getenv("PRODUCT_CATALOG_URL", "http://productcatalog:8081")
 CURRENCY_URL = os.getenv("CURRENCY_URL", "http://currency:8083")
@@ -57,7 +57,7 @@ def health():
 @app.post("/checkout", response_model=PlaceOrderResponse)
 async def place_order(req: PlaceOrderRequest):
     async with httpx.AsyncClient(timeout=10.0) as client:
-        # 1. Get cart
+        
         cart_resp = await client.post(f"{CART_URL}/cart/get", json={"user_id": req.user_id})
         if cart_resp.status_code != 200:
             raise HTTPException(status_code=500, detail="Failed to get cart")
@@ -66,7 +66,7 @@ async def place_order(req: PlaceOrderRequest):
         if not cart.get("items"):
             raise HTTPException(status_code=400, detail="Cart is empty")
         
-        # 2. Get product prices and calculate total
+        
         order_items = []
         total_usd_cents = 0
         
@@ -84,7 +84,7 @@ async def place_order(req: PlaceOrderRequest):
                     cost=price
                 ))
         
-        # 3. Get shipping quote
+        
         ship_quote_resp = await client.post(f"{SHIPPING_URL}/quote", json={
             "address": req.address.model_dump(),
             "items": [{"product_id": i.product_id, "quantity": i.quantity} for i in order_items]
@@ -93,10 +93,10 @@ async def place_order(req: PlaceOrderRequest):
         if ship_quote_resp.status_code == 200:
             shipping_cost = ship_quote_resp.json()["cost_usd"]
         
-        # Add shipping to total
+        
         total_usd_cents += shipping_cost["units"] * 100 + shipping_cost.get("nanos", 0) // 10_000_000
         
-        # 4. Convert total if needed
+        
         total_amount = {
             "currency_code": req.user_currency,
             "units": total_usd_cents // 100,
@@ -111,7 +111,7 @@ async def place_order(req: PlaceOrderRequest):
             if conv_resp.status_code == 200:
                 total_amount = conv_resp.json()
         
-        # 5. Charge payment
+        
         pay_resp = await client.post(f"{PAYMENT_URL}/charge", json={
             "amount": total_amount,
             "credit_card": req.credit_card.model_dump()
@@ -121,7 +121,7 @@ async def place_order(req: PlaceOrderRequest):
         
         transaction_id = pay_resp.json()["transaction_id"]
         
-        # 6. Ship order
+        
         ship_resp = await client.post(f"{SHIPPING_URL}/ship", json={
             "address": req.address.model_dump(),
             "items": [{"product_id": i.product_id, "quantity": i.quantity} for i in order_items]
@@ -130,7 +130,7 @@ async def place_order(req: PlaceOrderRequest):
         if ship_resp.status_code == 200:
             tracking_id = ship_resp.json()["tracking_id"]
         
-        # 7. Create order result
+        
         order_id = str(uuid.uuid4())
         order_result = OrderResult(
             order_id=order_id,
@@ -140,16 +140,16 @@ async def place_order(req: PlaceOrderRequest):
             items=order_items
         )
         
-        # 8. Send confirmation email (fire and forget)
+        
         try:
             await client.post(f"{EMAIL_URL}/send/confirmation", json={
                 "email": req.email,
                 "order": order_result.model_dump()
             })
         except Exception:
-            pass  # Don't fail order if email fails
+            pass  # order won't fail if email fails
         
-        # 9. Empty cart
+        
         await client.post(f"{CART_URL}/cart/empty", json={"user_id": req.user_id})
         
         return PlaceOrderResponse(order=order_result)

@@ -39,13 +39,13 @@ def health():
 
 @app.post("/send/confirmation", response_model=SendOrderConfirmationResponse)
 def send_order_confirmation(req: SendOrderConfirmationRequest):
-    # Mock email sending - just log it
+    
     logger.info(f"Sending order confirmation to {req.email}")
     logger.info(f"Order ID: {req.order.order_id}")
     logger.info(f"Tracking: {req.order.shipping_tracking_id}")
     logger.info(f"Items: {len(req.order.items)}")
     
-    # In a real service, this would send an actual email
+    
     return SendOrderConfirmationResponse(
         success=True,
         message=f"Confirmation email sent to {req.email}"

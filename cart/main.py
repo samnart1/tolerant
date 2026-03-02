@@ -56,11 +56,11 @@ def add_item(req: AddItemRequest):
     r = get_redis()
     cart_key = f"cart:{req.user_id}"
     
-    # Get existing cart
+    
     cart_data = r.get(cart_key)
     items = json.loads(cart_data) if cart_data else []
     
-    # Check if product already in cart
+    
     found = False
     for item in items:
         if item["product_id"] == req.item.product_id:
@@ -81,7 +81,7 @@ def empty_cart(req: EmptyCartRequest):
     r.delete(cart_key)
     return {"success": True}
 
-# Alternative REST endpoints for simpler access
+
 @app.get("/cart/{user_id}", response_model=Cart)
 def get_cart_rest(user_id: str):
     return get_cart(GetCartRequest(user_id=user_id))

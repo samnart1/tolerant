@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Benchmark runner for thesis experiments
+# Benchmark runner
 # Usage: ./run_benchmark.sh <experiment_name> <duration_minutes> <users> <spawn_rate>
 
 EXPERIMENT_NAME=${1:-"baseline"}

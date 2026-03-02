@@ -11,7 +11,6 @@ app = FastAPI(title="Frontend Service")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Service URLs
 PRODUCT_CATALOG_URL = os.getenv("PRODUCT_CATALOG_URL", "http://productcatalog:8081")
 CART_URL = os.getenv("CART_URL", "http://cart:8082")
 CURRENCY_URL = os.getenv("CURRENCY_URL", "http://currency:8083")
@@ -20,7 +19,6 @@ CHECKOUT_URL = os.getenv("CHECKOUT_URL", "http://checkout:8087")
 RECOMMENDATION_URL = os.getenv("RECOMMENDATION_URL", "http://recommendation:8088")
 AD_URL = os.getenv("AD_URL", "http://ad:8089")
 
-# Circuit breaker configuration
 CIRCUIT_BREAKER_ENABLED = os.getenv("CIRCUIT_BREAKER_ENABLED", "false").lower() == "true"
 CB_FAIL_MAX = int(os.getenv("CB_FAIL_MAX", "5"))
 CB_RESET_TIMEOUT = int(os.getenv("CB_RESET_TIMEOUT", "30"))
@@ -28,12 +26,7 @@ CB_RESET_TIMEOUT = int(os.getenv("CB_RESET_TIMEOUT", "30"))
 logger.info(f"Circuit Breaker Enabled: {CIRCUIT_BREAKER_ENABLED}")
 logger.info(f"CB Config: fail_max={CB_FAIL_MAX}, reset_timeout={CB_RESET_TIMEOUT}")
 
-# ============================================================
-# Circuit Breaker Implementation
-# ============================================================
-
 class CircuitBreaker:
-    """Simple circuit breaker implementation for thesis demonstration"""
     
     CLOSED = "closed"
     OPEN = "open"
@@ -48,7 +41,7 @@ class CircuitBreaker:
         self.last_failure_time = None
         self.success_count = 0
         
-        # Metrics
+        
         self.state_changes = []
         self.total_calls = 0
         self.total_failures = 0
@@ -70,7 +63,7 @@ class CircuitBreaker:
             logger.info(f"[CB:{self.name}] State change: {old_state} -> {new_state}")
     
     def can_execute(self) -> bool:
-        """Check if request can proceed"""
+        """check if request can proceed"""
         self.total_calls += 1
         
         if self.state == self.CLOSED:
@@ -85,13 +78,12 @@ class CircuitBreaker:
             return False
         
         if self.state == self.HALF_OPEN:
-            # Allow one request to test
             return True
         
         return False
     
     def record_success(self):
-        """Record successful call"""
+        """ecord successful call"""
         self.total_successes += 1
         
         if self.state == self.HALF_OPEN:
@@ -104,7 +96,7 @@ class CircuitBreaker:
             self.failure_count = 0
     
     def record_failure(self):
-        """Record failed call"""
+        """record failed call"""
         self.total_failures += 1
         self.failure_count += 1
         self.last_failure_time = time.time()
@@ -128,11 +120,11 @@ class CircuitBreaker:
 
 
 class CircuitBreakerOpen(Exception):
-    """Exception raised when circuit breaker is open"""
+    """exception raised when circuit breaker is open"""
     pass
 
 
-# Create circuit breakers for each service
+
 breakers = {
     "productcatalog": CircuitBreaker("productcatalog", CB_FAIL_MAX, CB_RESET_TIMEOUT),
     "cart": CircuitBreaker("cart", CB_FAIL_MAX, CB_RESET_TIMEOUT),
@@ -143,9 +135,6 @@ breakers = {
     "ad": CircuitBreaker("ad", CB_FAIL_MAX, CB_RESET_TIMEOUT),
 }
 
-# ============================================================
-# HTTP Client with Circuit Breaker
-# ============================================================
 
 async def call_service(breaker_name: str, method: str, url: str, **kwargs):
     """Make HTTP call with optional circuit breaker protection"""
@@ -153,7 +142,7 @@ async def call_service(breaker_name: str, method: str, url: str, **kwargs):
     breaker = breakers.get(breaker_name)
     timeout = kwargs.pop("timeout", 5.0)
     
-    # If circuit breaker disabled, just make the call
+    
     if not CIRCUIT_BREAKER_ENABLED:
         async with httpx.AsyncClient(timeout=timeout) as client:
             if method == "GET":
@@ -161,7 +150,7 @@ async def call_service(breaker_name: str, method: str, url: str, **kwargs):
             else:
                 return await client.post(url, **kwargs)
     
-    # Circuit breaker enabled
+    
     if not breaker.can_execute():
         raise CircuitBreakerOpen(f"Circuit breaker {breaker_name} is OPEN")
     
@@ -184,9 +173,7 @@ async def call_service(breaker_name: str, method: str, url: str, **kwargs):
         raise
 
 
-# ============================================================
-# Session Management
-# ============================================================
+
 
 sessions = {}
 
@@ -201,9 +188,7 @@ def get_currency(request: Request) -> str:
     return sessions.get(session_id, {}).get("currency", "USD")
 
 
-# ============================================================
-# Service Calls with Fallbacks
-# ============================================================
+
 
 async def get_products():
     try:
@@ -307,17 +292,12 @@ async def do_checkout_service(session_id: str, currency: str, address: dict, ema
         raise e
 
 
-# ============================================================
-# API Endpoints
-# ============================================================
-
 @app.get("/health")
 def health():
     return {"status": "ok", "circuit_breaker_enabled": CIRCUIT_BREAKER_ENABLED}
 
 @app.get("/metrics")
 def get_metrics():
-    """Endpoint to retrieve circuit breaker metrics"""
     return {
         "circuit_breaker_enabled": CIRCUIT_BREAKER_ENABLED,
         "breakers": {name: b.get_metrics() for name, b in breakers.items()}
