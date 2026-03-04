@@ -123,9 +123,152 @@ class TestOpenToClose:
 
 class TestOpenToHalfOpen:
     def test_transitions_to_half_open_after_timeout(self, monkeypatch):
-        pass
+        cb = make_cb(fail_max=1, reset_timeout=1)
+        trip(cb)
+        
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time+2)
+
+        assert cb.can_execute() is True
+        assert cb.state == CircuitBreaker.HALF_OPEN
 
     def test_state_change_logged_on_half_open(self, monkeypatch):
-        pass
+        cb = make_cb(fail_max=1, reset_timeout=1)
+        trip(cb)
+
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time+2)
+        cb.can_execute()
+
+        states = [(s["from"], s["to"]) for s in cb.state_changes]
+        assert (CircuitBreaker.OPEN, CircuitBreaker.HALF_OPEN) in states
 
 
+class TestHalfOpenState:
+    def _get_half_open_cb(self, monkeypatch, fail_max=1, reset_timeout=1):
+        cb = make_cb(fail_max=fail_max, reset_timeout=reset_timeout)
+        trip(cb)
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time+2)
+        cb.can_execute()
+        return cb
+
+    def test_failure_in_half_open_reopens(self, monkeypatch):
+        cb = self._get_half_open_cb(monkeypatch)
+        cb.record_failure()
+        assert cb.state == CircuitBreaker.OPEN
+
+    def test_single_success_in_half_open_stays_half_open(self, monkeypatch):
+        cb = make_cb(fail_max=1, reset_timeout=1)
+        trip(cb)
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time+2)
+        cb.can_execute()
+        cb.record_success()
+        assert cb.state == CircuitBreaker.HALF_OPEN
+
+
+    def test_two_success_close_breaker(self, monkeypatch):
+        cb = make_cb(fail_max=1, reset_timeout=1)
+        trip(cb)
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time + 2)
+        cb.can_execute()
+        cb.record_success()
+        cb.record_success()
+        assert cb.state == CircuitBreaker.CLOSED
+
+
+    def test_failure_count_reset_on_close(self, monkeypatch):
+        cb = make_cb(fail_max=1, reset_timeout=1)
+        trip(cb)
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time+2)
+        cb.can_execute()
+        cb.record_success()
+        cb.record_success()
+        assert cb.failure_count == 0
+
+
+    def test_full_state_change_sequence_logged(self, monkeypatch):
+        cb = make_cb(fail_max=1, reset_timeout=1)
+        trip(cb)
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time+2)
+        cb.can_execute()
+        cb.record_success()
+        cb.record_success()
+        
+        transitions = [(s["from"], s["to"]) for s in cb.state_changes]
+        assert transitions == [
+            (CircuitBreaker.CLOSED, CircuitBreaker.OPEN),
+            (CircuitBreaker.OPEN, CircuitBreaker.HALF_OPEN),
+            (CircuitBreaker.HALF_OPEN, CircuitBreaker.CLOSED)
+        ]
+
+
+
+
+class TestMetrics:
+    def test_get_metric_keys(self):
+        cb = make_cb()
+        m = cb.get_metrics()
+        assert set(m.keys()) == {
+            "name", "state", "failure_count", 
+            "total_calls", "total_successes", "total_failures",
+            "total_rejected", "state_changes"
+        }
+
+    def test_metrics_reflect_activity(self):
+        cb = make_cb(fail_max=2, reset_timeout=1)
+        cb.can_execute(); cb.record_success()
+        cb.can_execute(); cb.record_failure()
+        cb.can_execute(); cb.record_failure()
+        cb.can_execute();
+
+        m = cb.get_metrics()
+        assert m["total_calls"] == 4
+        assert m["total_successes"] == 1
+        assert m["total_failures"] == 2
+        assert m["total_rejected"] == 1
+        assert m["state"] == CircuitBreaker.OPEN
+
+    def test_name_preserved(self):
+        cb = CircuitBreaker("my-service", fail_max=5, reset_timeout=10)
+        assert cb.get_metrics()["name"] == "my-service"
+
+
+
+class TestEdgeCases:
+    def test_fail_max_one(self):
+        cb = make_cb(fail_max=1)
+        cb.record_failure()
+        assert cb.state == CircuitBreaker.OPEN
+
+
+    def test_multiple_trips_and_recoveries(self, monkeypatch):
+        cb = make_cb(fail_max=1, reset_timeout=1)
+
+        for _ in range(3):
+            cb.record_failure()
+            assert cb.state == CircuitBreaker.OPEN
+
+            monkeypatch.setattr(time, "time", lambda: cb.last_failure_time +2)
+            cb.can_execute()
+            cb.record_success()
+            cb.record_success()
+            assert cb.state == CircuitBreaker.CLOSED
+
+
+    def test_success_on_closed_does_not_create_state_change(self):
+        cb = make_cb()
+        cb.record_success()
+        assert cb.state_changes == []
+
+
+    def test_half_open_reopens_and_can_recover_again(self, monkeypatch):
+        cb = make_cb(fail_max=1, reset_timeout=1)
+        trip(cb)
+
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time + 2)
+        cb.can_execute()
+        cb.record_failure()
+
+        monkeypatch.setattr(time, "time", lambda: cb.last_failure_time + 2)
+        cb.can_execute()
+        cb.record_success()
+        cb.record_success()
+        assert cb.state == CircuitBreaker.CLOSED
