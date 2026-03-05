@@ -15,7 +15,6 @@ services:
       timeout: 3s
       retries: 5
 
-
   currency:
     <<: *service-common
     working_dir: /app/currency
@@ -148,7 +147,6 @@ services:
       - payment
       - email
 
-  # frontend ocust hits here
   frontend:
     <<: *service-common
     working_dir: /app/frontend
@@ -178,9 +176,35 @@ services:
       - recommendation
       - ad
 
+
+  scaphandre:
+    image: hubblo/scaphandre:latest
+    privileged: true
+    command: prometheus
+    ports:
+      - "8091:8080"
+    volumes:
+      - /sys/class/powercap:/sys/class/powercap:ro
+      - /proc:/proc:ro
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=2h'
+    depends_on:
+      - scaphandre
+    restart: unless-stopped
+
   loadgenerator:
     build: ./loadgenerator
-    ports: 
+    ports:
       - "8090:8089"
     volumes:
       - ./loadgenerator:/mnt/locust
@@ -188,7 +212,7 @@ services:
     depends_on:
       - frontend
     profiles:
-      - loadtext
+      - loadtest
 
 networks:
   default:
