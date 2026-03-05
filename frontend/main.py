@@ -294,7 +294,7 @@ async def index(request: Request):
     currency = get_currency(request)
     
     products = await get_products()
-    ads = await get_ads()
+    ads = await get_ads([])
     
     response = HTMLResponse(content=f"""
     <!DOCTYPE html>
